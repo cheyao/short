@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, UploadFile, Form
 from pydantic import BaseModel
+import aiofiles
 from typing import Union
 from typing_extensions import Annotated
 from requests import get
@@ -42,19 +43,22 @@ def auth(id: int, otp: str, retry: bool = False) -> bool | HTTPException:
 
     return True
 
-def upload(file: UploadFile, name: str):
-    with open(name, 'w') as ofile:
-        ofile.write(file.read());
+async def upload(file: UploadFile, name: str):
+    async with aiofiles.open(name, 'wb') as ofile:
+        contents = await file.read();
+        await ofile.write(contents);
+
+    return "Success";
 
 @app.post('/upload')
 async def results(password: Annotated[str, Form()], file: UploadFile, name: Annotated[str, Form()]):
     result1 = auth(105543, password); # Main Yubikey
     if type(result1) is bool and result1 == True:
-        return upload(file, name);
+        return await upload(file, name);
 
     result2 = auth(105538, password); # Back Yubikey
     if type(result2) is bool and result2 == True:
-        return upload(file, name);
+        return await upload(file, name);
 
     if type(result1) is HTTPException:
         return result1;

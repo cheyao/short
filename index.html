@@ -11,27 +11,14 @@
 		<p>DM @Cyao on slack with your yubikey OTP user to get access</p>
 		<p>Used to send responses to my friends :D</p>
 
-		<form action="http://localhost:8000/upload" method="post" enctype="multipart/form-data">
-		<input type="string" name="password" id="OTP" placeholder="OTP Password" required="required" pattern="[A-Za-z0-9]*">
-		<br>
-		<input name="file" type="file" required>
-		<br>
-		<input id="name" name="name" type="string" placeholder="name" required="required" pattern="[A-Za-z0-9]*">
-		<br>
-		<input type="submit" value="Upload">
-		</form>
+		<iframe name="dummyframe" id="dummyframe" style="display: none;"></iframe>
 
-		<p id="output"></p>
-		<script>
-			$(document).ready(function() {
-				$(window).keydown(function(event){
-					if(event.keyCode == 13) {
-						event.preventDefault();
-						return false;
-					}
-				});
-			});
-		</script>
+		<form id='form' name='form' action="http://localhost:8000/upload" method="post" enctype="multipart/form-data" target="dummyframe">
+		<input type="string" name="password" id="OTP" placeholder="OTP Password" required="required" pattern="[A-Za-z0-9]*">
+		<input name="file" type="file" required>
+		<input id="name" name="name" type="string" placeholder="name" required="required" pattern="[A-Za-z0-9]*">
+		<input type="reset" value="Upload" onclick="document.forms['form'].submit();">
+		</form>
 	</body>
 	<style>
 		h1 {
