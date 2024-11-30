@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, File, UploadFile
 from pydantic import BaseModel
 from requests import get
 import random
@@ -9,6 +9,7 @@ app = FastAPI();
 class Item(BaseModel):
     name: str
     password: str
+    file: UploadFile
 
 def generateNonce() -> str:
     len: int = random.randint(16, 40);
@@ -17,7 +18,6 @@ def generateNonce() -> str:
 def auth(id: int, otp: str, retry: bool = False) -> bool | HTTPException:
     nonce: str = generateNonce();
     url: str = f"https://api.yubico.com/wsapi/2.0/verify?id={id}&otp={otp}&nonce={nonce}"; 
-    print(url)
     resp = get(url);
 
     if (resp.status_code >= 400 and resp.status_code <= 599 and not retry):
@@ -40,15 +40,19 @@ def auth(id: int, otp: str, retry: bool = False) -> bool | HTTPException:
 
     return True
 
-@app.put('/upload')
+def upload(file: UploadFile, name: str):
+    with open(name) as ofile:
+        ofile.write(file.read());
+
+@app.post('/upload')
 async def results(item: Item):
     result1 = auth(105543, item.password); # Main Yubikey
     if type(result1) is bool and result1 == True:
-        return "OK";
+        return upload(item.file, item.name);
 
     result2 = auth(105538, item.password); # Back Yubikey
     if type(result2) is bool and result2 == True:
-        return "OK";
+        return upload(item.file, item.name);
 
     if type(result1) is HTTPException:
         return result1;
