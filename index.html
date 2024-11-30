@@ -10,34 +10,27 @@
 		<h1>Cyao URL shortener</h1>
 		<p>DM @Cyao on slack with your yubikey OTP user to get access</p>
 		<p>Used to send responses to my friends :D</p>
-		<input type="string" name="OTP" id="OTP" placeholder="OTP Password">
+
+		<form action="http://localhost:8000/upload" method="post" enctype="multipart/form-data">
+		<input type="string" name="password" id="OTP" placeholder="OTP Password" required="required" pattern="[A-Za-z0-9]*">
 		<br>
-		<input name="files" type="file">
+		<input name="file" type="file" required>
 		<br>
-		<input id="name" type="string" placeholder="name">
+		<input id="name" name="name" type="string" placeholder="name" required="required" pattern="[A-Za-z0-9]*">
 		<br>
-		<button type="send" onclick="put()">Upload</button>
+		<input type="submit" value="Upload">
+		</form>
 
 		<p id="output"></p>
 		<script>
-			function send() {
-				const API = 'https://localhost:8000/upload';
-				const form = {
-					'password': document.getElementById('OTP').value),
-					'name':     document.getElementById('name').value),
-				};
-
-				return fetch(API, {
-					method: 'POST',
-					body: form
-				}).then(response => response.json())
-			}
-
-			function put() {
-				send()
-					.then((json) => { document.getElementById('output').textContent = json['response']; })
-					.catch(error => { document.getElementById('output').textContent = error; });
-			}
+			$(document).ready(function() {
+				$(window).keydown(function(event){
+					if(event.keyCode == 13) {
+						event.preventDefault();
+						return false;
+					}
+				});
+			});
 		</script>
 	</body>
 	<style>
