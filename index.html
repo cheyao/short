@@ -8,17 +8,35 @@
 	</head>
 	<body>
 		<h1>Cyao URL shortener</h1>
-		<input type="string" name="OTP" id="OTP" value="">
-		<input name="files" type="file">
-
+		<p>DM @Cyao on slack with your yubikey OTP user to get access</p>
+		<p>Used to send responses to my friends :D</p>
+		<input type="string" name="OTP" id="OTP" placeholder="OTP Password">
 		<br>
+		<input name="files" type="file">
+		<br>
+		<input id="name" type="string" placeholder="name">
+		<br>
+		<button type="send" onclick="put()">Upload</button>
 
-		<button type="send" onclick="send()">Upload</button>
+		<p id="output"></p>
 		<script>
 			function send() {
 				const API = 'https://localhost:8000/upload';
-				pwd = document.getElementById('OTP').value;
-				
+				const form = {
+					'password': document.getElementById('OTP').value),
+					'name':     document.getElementById('name').value),
+				};
+
+				return fetch(API, {
+					method: 'POST',
+					body: form
+				}).then(response => response.json())
+			}
+
+			function put() {
+				send()
+					.then((json) => { document.getElementById('output').textContent = json['response']; })
+					.catch(error => { document.getElementById('output').textContent = error; });
 			}
 		</script>
 	</body>
