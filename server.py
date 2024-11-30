@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from requests import get
+import random
+import string
 
 app = FastAPI();
 
@@ -8,17 +10,50 @@ class Item(BaseModel):
     name: str
     password: str
 
-def generateNonce():
-    return '1';
+def generateNonce() -> str:
+    len: int = random.randint(16, 40);
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=len));
 
-@app.put('/upload')
-async def results(item: Item):
-    url = f"https://api.yubico.com/wsapi/2.0/verify?id=${105538}&otp=${item.password}&nonce=${generateNonce()}"; 
+def auth(id: int, otp: str, retry: bool = False) -> bool | HTTPException:
+    nonce: str = generateNonce();
+    url: str = f"https://api.yubico.com/wsapi/2.0/verify?id={id}&otp={otp}&nonce={nonce}"; 
+    print(url)
     resp = get(url);
+
+    if (resp.status_code >= 400 and resp.status_code <= 599 and not retry):
+        return auth(id, otp, True);
 
     if (resp.status_code != 200):
         return HTTPException(status_code=resp.status_code, detail="Failed to reach yubico");
 
-    if (resp.json()['status'] != "OK"):
-        return HTTPException(status_code=403, detail=resp.json()['status']);
+    respl = [i.split('=', 1) for i in resp.text.strip().split('\n')];
+    resp = {key.strip(): val.strip() for [key, val] in respl};
+
+    if (resp['status'] == "REPLAYED_REQUEST" and not retry):
+        return auth(id, otp, True);
+
+    if (resp['status'] != "OK"):
+        return HTTPException(status_code=403, detail=resp['status']);
+
+    if (resp['sl'] != "100"):
+        return HTTPException(status_code=403, detail=f"Only {resp['sl']}% of servers validated");
+
+    return True
+
+@app.put('/upload')
+async def results(item: Item):
+    result1 = auth(105543, item.password); # Main Yubikey
+    if type(result1) is bool and result1 == True:
+        return "OK";
+
+    result2 = auth(105538, item.password); # Back Yubikey
+    if type(result2) is bool and result2 == True:
+        return "OK";
+
+    if type(result1) is HTTPException:
+        return result1;
+
+    if type(result2) is HTTPException:
+        return result2;
+
 
