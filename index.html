@@ -4,25 +4,123 @@
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>Cyao url shortener</title>
-		<link href="css/style.css" rel="stylesheet">
 	</head>
 	<body>
 		<h1>Cyao URL shortener</h1>
+
+		<div id='main'>
 		<p>DM @Cyao on slack with your yubikey OTP user to get access</p>
 		<p>Used to send responses to my friends :D</p>
 
+		<div class="center">
 		<iframe name="dummyframe" id="dummyframe" style="display: none;"></iframe>
 
-		<form id='form' name='form' action="http://localhost:8000/upload" method="post" enctype="multipart/form-data" target="dummyframe">
-		<input type="string" name="password" id="OTP" placeholder="OTP Password" required="required" pattern="[A-Za-z0-9]*">
-		<input name="file" type="file" required>
-		<input id="name" name="name" type="string" placeholder="name" required="required" pattern="[A-Za-z0-9]*">
-		<input type="reset" value="Upload" onclick="document.forms['form'].submit();">
+		<form id='form' name='form' action="upload" method="post" enctype="multipart/form-data" target="dummyframe">
+		<input class="input" type="text" name="password" id="OTP" placeholder="OTP Password" required="required" pattern="[A-Za-z0-9]*">
+		<input class="input" id="file-upload" name="file" type="file" required>
+		<label for="file-upload" class="custom-file-upload">Select file</label>
+		<input class="input" id="name" name="name" type="text" placeholder="name" required="required" pattern="[A-Za-z0-9]*">
+		<input class="input" id="up" type="reset" value="Upload" onclick="">
 		</form>
+
+		<p id='status'></p>
+
+		<p>Example: <a href="gura.png">https://cyao.hackclub.app/gura.png</a>
+		</div>
+		</div>
+		<script>
+document.getElementById("up").onclick=async() => {
+	document.forms['form'].submit(); 
+	data = await getData();
+	document.getElementById('status').textContent = data['status'];
+};
+
+async function getData() {
+	const url = "status";
+	try {
+		const response = await fetch(url);
+		if (!response.ok) {
+			throw new Error(`Response status: ${response.status}`);
+		}
+
+		const json = await response.json();
+		return json;
+	} catch (error) {
+		return error.message;
+	}
+}
+		</script>
 	</body>
 	<style>
+		body {
+			background-color: #F9F9F9;
+		}
+
 		h1 {
 			text-align: center;
+		}
+
+		.center {
+			text-align: center;
+		}
+
+		#main {
+			margin: auto;
+			width: 50%;
+			border: 3px solid #7CACCD;
+			padding: 10px;
+			background-color: #B8D7EF;
+		}
+
+		input[type=text] {
+			background: #A1BBD2;
+			font-size: 14px;
+			padding:5px; 
+			border: 3px solid #566C88;
+			-webkit-border-radius: 5px;
+			border-radius: 5px;
+		}
+
+		input[type=upload] {
+			background: #A1BBD2;
+			font-size: 14px;
+			padding:5px; 
+			border: 3px solid #566C88;
+			-webkit-border-radius: 5px;
+			border-radius: 5px;
+		}
+
+		input[type=text]:focus {
+			border-color: #24A2DA;
+		}
+
+		input[type=reset] {
+			background: #A1BBD2;
+			font-size: 14px;
+			padding: 5px 15px; 
+			border: 3px solid #566C88;
+			cursor: pointer;
+		    	-webkit-border-radius: 5px;
+		    	border-radius: 5px;
+		}
+
+		input[type="file"] {
+			display: none;
+		}
+
+		.custom-file-upload:hover {
+			cursor: pointer;
+		}
+
+		.custom-file-upload {
+			font-size: 14px;
+			background: #A1BBD2;
+			display: inline-block;
+			padding: 3px 15px;
+			padding-bottom: 5px;
+			border: 3px solid #566C88;
+			-webkit-border-radius: 5px;
+			border-radius: 5px;
 		}
 	</style>
 </html>
