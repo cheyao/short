@@ -83,18 +83,24 @@ async def index():
 async def url():
     return FileResponse("url.html")
 
+@app.get('/url.html')
+async def url2():
+    return FileResponse("url.html")
+
 @app.get('/{file}')
 async def file(file: str):
     return FileResponse(f"files/{file}")
 
-@app.get('/static/{file}')
-async def static(file: str):
-    if (os.path.isfile(f"static/{file}")):
-        return FileResponse(f"static/{file}")
-    if (os.path.isfile(f"static/{file}.html")):
-        return FileResponse(f"static/{file}.html")
-    if (os.path.isfile(f"static/{file}.gz")):
-        return FileResponse(f"static/{file}.gz")
+@app.get('/static/{full_path:path}')
+async def static(full_path: str):
+    if (os.path.isfile(f"static/{full_path}")):
+        return FileResponse(f"static/{full_path}")
+    if (os.path.isfile(f"static/{full_path}.html")):
+        return FileResponse(f"static/{full_path}.html")
+    if (os.path.isfile(f"static/{full_path}/index.html")):
+        return FileResponse(f"static/{full_path}/index.html")
+    if (os.path.isfile(f"static/{full_path}.gz")):
+        return FileResponse(f"static/{full_path}.gz", headers={"Content-Encoding": "gzip"})
 
     return FileResponse(f"static/404.html")
 
