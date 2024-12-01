@@ -6,9 +6,8 @@ from typing_extensions import Annotated
 from requests import get
 import random
 import string
-from threading import Thread, Lock
+import os.path
 
-mutex = Lock()
 app = FastAPI();
 
 class Item(BaseModel):
@@ -80,7 +79,22 @@ async def status():
 async def index():
     return FileResponse("index.html")
 
+@app.get('/url')
+async def url():
+    return FileResponse("url.html")
+
 @app.get('/{file}')
 async def file(file: str):
     return FileResponse(f"files/{file}")
+
+@app.get('/static/{file}')
+async def static(file: str):
+    if (os.path.isfile(f"static/{file}")):
+        return FileResponse(f"static/{file}")
+    if (os.path.isfile(f"static/{file}.html")):
+        return FileResponse(f"static/{file}.html")
+    if (os.path.isfile(f"static/{file}.gz")):
+        return FileResponse(f"static/{file}.gz")
+
+    return FileResponse(f"static/404.html")
 
