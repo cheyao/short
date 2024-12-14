@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, Form, HTTPException
+from PIL import Image
 from fastapi.responses import FileResponse
 import json
 from pydantic import BaseModel
@@ -415,9 +416,16 @@ async def waifu():
         raise HTTPException(status_code=404, detail="Image not found");
 
     image_bytes = BytesIO(response.content);
-    t = data["url"][1:];
+    image = Image.open(image_bytes)
 
-    return StreamingResponse(image_bytes, media_type=response.headers.get("Content-Type", f"image/{t}"))
+    max_size = (128, 160)
+    image.thumbnail(max_size)
+
+    output = BytesIO()
+    image.save(output, format="PNG");
+    output.seek(0)
+
+    return StreamingResponse(output, media_type=response.headers.get("Content-Type", f"image/png"))
 
 @app.get('/{file}')
 async def file(file: str):
