@@ -1,8 +1,12 @@
-from fastapi import FastAPI, UploadFile, Form
+from fastapi import FastAPI, UploadFile, Form, HTTPException
 from fastapi.responses import FileResponse
+import json
 from pydantic import BaseModel
 import aiofiles
 from typing_extensions import Annotated
+from fastapi.responses import StreamingResponse
+import httpx
+from io import BytesIO
 from requests import get
 import random
 import string
@@ -391,6 +395,29 @@ async def url2():
 @app.get('/api')
 async def api():
     return FileResponse("static/api.json")
+
+async def getWaifuPic():
+    resp = get("https://api.waifu.im/search?is_nsfw=false&gif=false&orientation=PORTRAIT");
+
+    if (resp.status_code != 200):
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    return resp.json()["images"][0];
+
+@app.get('/waifu')
+async def waifu():
+    data = await getWaifuPic();
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(data["url"]);
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=404, detail="Image not found");
+
+    image_bytes = BytesIO(response.content);
+    t = data["url"][1:];
+
+    return StreamingResponse(image_bytes, media_type=response.headers.get("Content-Type", f"image/{t}"))
 
 @app.get('/{file}')
 async def file(file: str):
